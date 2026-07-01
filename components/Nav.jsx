@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { useCart } from './CartContext'
 
 export default function Nav() {
+  const { itemCount } = useCart()
+
   return (
     <nav className="bg-apothecary-forest text-apothecary-cream px-8 py-4 flex items-center justify-between">
       <Link href="/" className="text-xl font-semibold tracking-wide">
@@ -17,7 +22,7 @@ export default function Nav() {
           Wholesale
         </Link>
         <Link href="/cart" className="hover:text-apothecary-clay transition-colors">
-          Cart
+          Cart ({itemCount})
         </Link>
       </div>
     </nav>

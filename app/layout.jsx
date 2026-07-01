@@ -1,6 +1,7 @@
 import './globals.css'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
+import { CartProvider } from '../components/CartContext'
 
 export const metadata = {
   title: 'All Mountain Apothecary',
@@ -12,9 +13,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-apothecary-cream font-sans flex flex-col">
-        <Nav />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <CartProvider>
+          <Nav />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   )

@@ -1,0 +1,147 @@
+export default {
+  name: 'product',
+  title: 'Product',
+  type: 'document',
+  fields: [
+    {
+      name: 'name',
+      title: 'Name',
+      type: 'string',
+      validation: (Rule) => Rule.required(),
+    },
+    {
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: { source: 'name', maxLength: 96 },
+      validation: (Rule) => Rule.required(),
+    },
+    {
+      name: 'tagline',
+      title: 'Tagline',
+      type: 'string',
+      description: 'Short one-line description, e.g. "Adaptogenic baseline for stress and stamina."',
+    },
+    {
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Daily Tonic', value: 'Daily Tonic' },
+          { title: 'Sleep', value: 'Sleep' },
+          { title: 'Immune', value: 'Immune' },
+          { title: 'Digestion', value: 'Digestion' },
+          { title: 'Calm', value: 'Calm' },
+          { title: 'Joint', value: 'Joint' },
+        ],
+      },
+      validation: (Rule) => Rule.required(),
+    },
+    {
+      name: 'description',
+      title: 'Description',
+      type: 'array',
+      of: [{ type: 'block' }],
+    },
+    {
+      name: 'botanicals',
+      title: 'Key Botanicals',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'botanical',
+          fields: [
+            { name: 'name', title: 'Name', type: 'string', validation: (Rule) => Rule.required() },
+            { name: 'note', title: 'Note', type: 'string' },
+          ],
+          preview: {
+            select: { title: 'name', subtitle: 'note' },
+          },
+        },
+      ],
+    },
+    {
+      name: 'images',
+      title: 'Images',
+      type: 'array',
+      of: [{ type: 'image', options: { hotspot: true } }],
+      validation: (Rule) => Rule.required().min(1),
+    },
+    {
+      name: 'volume',
+      title: 'Volume',
+      type: 'string',
+      description: 'e.g. "2 fl oz"',
+      initialValue: '2 fl oz',
+    },
+    {
+      name: 'baseInfo',
+      title: 'Base',
+      type: 'string',
+      description: 'e.g. "Organic cane alcohol"',
+      initialValue: 'Organic cane alcohol',
+    },
+    {
+      name: 'shelfLife',
+      title: 'Shelf Life',
+      type: 'string',
+      initialValue: '3 years',
+    },
+    {
+      name: 'casePackSize',
+      title: 'Case Pack Size',
+      type: 'number',
+      initialValue: 12,
+    },
+    {
+      name: 'retailPrice',
+      title: 'Retail Price (USD)',
+      type: 'number',
+      description: 'This is the price charged at checkout. Changing this updates the live price immediately.',
+      validation: (Rule) => Rule.required().positive(),
+    },
+    {
+      name: 'wholesalePrice',
+      title: 'Wholesale Price (USD)',
+      type: 'number',
+      description: 'Reference only — not used in the online checkout.',
+      validation: (Rule) => Rule.positive(),
+    },
+    {
+      name: 'isFeatured',
+      title: 'Featured on homepage',
+      type: 'boolean',
+      initialValue: false,
+    },
+    {
+      name: 'isActive',
+      title: 'Active (visible in shop)',
+      type: 'boolean',
+      description: 'Turn off to hide this product from the shop without deleting it.',
+      initialValue: true,
+    },
+    {
+      name: 'sortOrder',
+      title: 'Sort Order',
+      type: 'number',
+      description: 'Lower numbers appear first in the shop grid.',
+      initialValue: 0,
+    },
+    {
+      name: 'seo',
+      title: 'SEO',
+      type: 'object',
+      fields: [
+        { name: 'metaTitle', title: 'Meta Title', type: 'string' },
+        { name: 'metaDescription', title: 'Meta Description', type: 'text', rows: 2 },
+        { name: 'ogImage', title: 'Social Share Image', type: 'image' },
+      ],
+      options: { collapsible: true, collapsed: true },
+    },
+  ],
+  preview: {
+    select: { title: 'name', subtitle: 'category', media: 'images.0' },
+  },
+}
