@@ -8,6 +8,11 @@
 // are added, which is expected per "I'll add pics of products later."
 import { createClient } from '@sanity/client'
 import { projectId, dataset, apiVersion } from '../sanity/env.js'
+import {
+  homePageDefaults,
+  ourStoryPageDefaults,
+  wholesalePageDefaults,
+} from '../lib/content-defaults.js'
 
 const token = process.env.SANITY_API_TOKEN
 if (!token) {
@@ -17,12 +22,25 @@ if (!token) {
 
 const client = createClient({ projectId, dataset, apiVersion, token, useCdn: false })
 
+// Sanity requires a _key on every array item (and every Portable Text
+// block/span) for the Studio to edit/reorder them cleanly. Without it,
+// Studio shows a "Missing keys" warning on first open.
+let keyCounter = 0
+const randKey = () => `seed-${Date.now()}-${keyCounter++}`
+const withKeys = (items) => items.map((item) => ({ _key: randKey(), ...item }))
+const toBlocks = (paragraphs) =>
+  paragraphs.map((text) => ({
+    _type: 'block',
+    _key: randKey(),
+    children: [{ _type: 'span', _key: randKey(), text }],
+  }))
+
 const products = [
   {
     name: 'Ridge Reishi Daily',
     category: 'Daily Tonic',
     tagline: 'Adaptogenic baseline for stress and stamina.',
-    botanicals: [{ name: 'Reishi mushroom' }, { name: 'Ashwagandha' }, { name: 'Tulsi' }],
+    botanicals: withKeys([{ name: 'Reishi mushroom' }, { name: 'Ashwagandha' }, { name: 'Tulsi' }]),
     retailPrice: 48,
     wholesalePrice: 32,
     isFeatured: true,
@@ -32,7 +50,7 @@ const products = [
     name: 'Hollow Moon Sleep',
     category: 'Sleep',
     tagline: 'Quiet the mind and ease into deep rest.',
-    botanicals: [{ name: 'Valerian' }, { name: 'Passionflower' }, { name: 'Skullcap' }],
+    botanicals: withKeys([{ name: 'Valerian' }, { name: 'Passionflower' }, { name: 'Skullcap' }]),
     retailPrice: 52,
     wholesalePrice: 34,
     isFeatured: true,
@@ -42,25 +60,17 @@ const products = [
     name: 'Immune Boost',
     category: 'Immune',
     tagline: 'Six wild-foraged immuno-boosting herbs, wild-foraged in western PA.',
-    description: [
-      {
-        _type: 'block',
-        children: [
-          {
-            _type: 'span',
-            text: 'A sublingual immuno-boosting elixir blending six wild-foraged medicinal plants — elderberry, elder flower, pine pollen, chaga, reishi, and wild garlic. Extracted slow in organic cane alcohol, delivered under the tongue for fast absorption.',
-          },
-        ],
-      },
-    ],
-    botanicals: [
+    description: toBlocks([
+      'A sublingual immuno-boosting elixir blending six wild-foraged medicinal plants — elderberry, elder flower, pine pollen, chaga, reishi, and wild garlic. Extracted slow in organic cane alcohol, delivered under the tongue for fast absorption.',
+    ]),
+    botanicals: withKeys([
       { name: 'Elderberry', note: 'Common cold, influenza, sinus pain, chronic fatigue' },
       { name: 'Elder Flower', note: 'Sinusitis, colds, flu, bronchitis' },
       { name: 'Pine Pollen', note: 'Immune stimulant, brain health, detoxification' },
       { name: 'Chaga Mushroom', note: 'Antioxidant, anti-inflammatory' },
       { name: 'Reishi Mushroom', note: 'Immune support, insulin sensitivity' },
       { name: 'Wild Garlic', note: 'Blood pressure, cholesterol, antibiotic properties' },
-    ],
+    ]),
     volume: '2 fl oz',
     baseInfo: 'Organic cane alcohol',
     shelfLife: '3 years',
@@ -74,7 +84,7 @@ const products = [
     name: 'Hearth Bitter',
     category: 'Digestion',
     tagline: 'Pre-meal bitter for digestion and appetite.',
-    botanicals: [{ name: 'Gentian' }, { name: 'Burdock' }, { name: 'Orange peel' }],
+    botanicals: withKeys([{ name: 'Gentian' }, { name: 'Burdock' }, { name: 'Orange peel' }]),
     retailPrice: 40,
     wholesalePrice: 26,
     sortOrder: 4,
@@ -83,7 +93,7 @@ const products = [
     name: 'Stillwater Calm',
     category: 'Calm',
     tagline: 'In-the-moment composure without drowsiness.',
-    botanicals: [{ name: 'Lemon balm' }, { name: 'Milky oat' }, { name: 'Lavender' }],
+    botanicals: withKeys([{ name: 'Lemon balm' }, { name: 'Milky oat' }, { name: 'Lavender' }]),
     retailPrice: 46,
     wholesalePrice: 30,
     sortOrder: 5,
@@ -92,7 +102,7 @@ const products = [
     name: 'Stovepipe Joint',
     category: 'Joint',
     tagline: 'Warming support for stiff, overworked joints.',
-    botanicals: [{ name: "St. John's Wort" }, { name: 'Turmeric' }, { name: 'Cottonwood' }],
+    botanicals: withKeys([{ name: "St. John's Wort" }, { name: 'Turmeric' }, { name: 'Cottonwood' }]),
     retailPrice: 52,
     wholesalePrice: 34,
     sortOrder: 6,
@@ -116,5 +126,33 @@ for (const product of products) {
   const result = await client.createIfNotExists({ _id: `product-${doc.slug.current}`, ...doc })
   console.log(`Seeded: ${result.name}`)
 }
+
+const homePageDoc = {
+  _id: 'homePage',
+  _type: 'homePage',
+  ...homePageDefaults,
+}
+await client.createIfNotExists(homePageDoc)
+console.log('Seeded: Home Page')
+
+const ourStoryDoc = {
+  _id: 'ourStoryPage',
+  _type: 'ourStoryPage',
+  title: ourStoryPageDefaults.title,
+  subtitle: ourStoryPageDefaults.subtitle,
+  stats: withKeys(ourStoryPageDefaults.stats),
+  body: toBlocks(ourStoryPageDefaults.bodyPlainText),
+}
+await client.createIfNotExists(ourStoryDoc)
+console.log('Seeded: Our Story Page')
+
+const wholesalePageDoc = {
+  _id: 'wholesalePage',
+  _type: 'wholesalePage',
+  ...wholesalePageDefaults,
+  terms: withKeys(wholesalePageDefaults.terms),
+}
+await client.createIfNotExists(wholesalePageDoc)
+console.log('Seeded: Wholesale Page')
 
 console.log('\nDone. Add product photos in Studio — images are required before a product is fully valid.')

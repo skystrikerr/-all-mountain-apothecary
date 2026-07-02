@@ -2,6 +2,7 @@ import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
 import { visionTool } from '@sanity/vision'
 import { schemaTypes } from './sanity/schemaTypes'
+import { structure } from './sanity/structure'
 
 // Hardcoded rather than pulled from sanity/env.js: this file builds via
 // Sanity's own Vite-based CLI (sanity dev / sanity deploy), which doesn't
@@ -19,7 +20,7 @@ export default defineConfig({
   projectId,
   dataset,
 
-  plugins: [structureTool(), visionTool({ defaultApiVersion: apiVersion })],
+  plugins: [structureTool({ structure }), visionTool({ defaultApiVersion: apiVersion })],
 
   schema: {
     types: schemaTypes,
