@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '../../../lib/stripe'
+import { getStripe } from '../../../lib/stripe'
 
 export async function POST(request) {
   // Signature verification requires the raw, unparsed body — reading it as
@@ -9,7 +9,7 @@ export async function POST(request) {
 
   let event
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '../../../lib/stripe'
+import { getStripe } from '../../../lib/stripe'
 import { serverClient } from '../../../lib/sanity/serverClient'
 import { urlFor } from '../../../lib/sanity/image'
 
@@ -59,7 +59,7 @@ export async function POST(request) {
     ? [{ shipping_rate: process.env.STRIPE_SHIPPING_RATE_ID }]
     : undefined
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'payment',
     line_items,
     automatic_tax: { enabled: true },
