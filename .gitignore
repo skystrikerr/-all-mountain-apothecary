@@ -16,6 +16,9 @@ dist-ssr
 .next
 out
 
+# Sanity Studio build output
+.sanity
+
 # Env vars
 .env
 .env.local
