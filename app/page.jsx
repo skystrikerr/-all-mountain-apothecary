@@ -3,6 +3,7 @@ import { client } from '../lib/sanity/client'
 import { featuredProductsQuery, homePageQuery } from '../lib/sanity/queries'
 import { homePageDefaults } from '../lib/content-defaults'
 import ProductCard from '../components/ProductCard'
+import BottleSceneLoader from '../components/three/BottleSceneLoader'
 
 export const revalidate = 60
 
@@ -17,20 +18,40 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-apothecary-forest text-apothecary-cream py-24 px-8 text-center">
-        <p className="text-apothecary-clay uppercase tracking-widest text-sm mb-4">
-          {content.heroEyebrow}
-        </p>
-        <h1 className="text-5xl font-bold mb-6 leading-tight">{content.heroHeadline}</h1>
-        <p className="max-w-xl mx-auto text-apothecary-cream/80 text-lg mb-10">
-          {content.heroSubtext}
-        </p>
-        <Link
-          href="/shop"
-          className="inline-block bg-apothecary-clay text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          {content.heroCtaText}
-        </Link>
+      <section className="bg-apothecary-forest text-apothecary-cream py-16 md:py-24 px-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="text-center md:text-left">
+            <p
+              className="text-apothecary-clay uppercase tracking-widest text-sm mb-4 animate-fade-up"
+              style={{ animationDelay: '0.1s' }}
+            >
+              {content.heroEyebrow}
+            </p>
+            <h1
+              className="text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-up"
+              style={{ animationDelay: '0.25s' }}
+            >
+              {content.heroHeadline}
+            </h1>
+            <p
+              className="max-w-xl mx-auto md:mx-0 text-apothecary-cream/80 text-lg mb-10 animate-fade-up"
+              style={{ animationDelay: '0.4s' }}
+            >
+              {content.heroSubtext}
+            </p>
+            <Link
+              href="/shop"
+              className="inline-block bg-apothecary-clay text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity animate-fade-up"
+              style={{ animationDelay: '0.55s' }}
+            >
+              {content.heroCtaText}
+            </Link>
+          </div>
+
+          <div className="h-72 md:h-96 order-first md:order-last">
+            <BottleSceneLoader />
+          </div>
+        </div>
       </section>
 
       {/* Featured Elixirs */}

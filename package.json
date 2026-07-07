@@ -14,13 +14,16 @@
   },
   "dependencies": {
     "@portabletext/react": "^6.2.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@sanity/client": "^7.23.0",
     "@sanity/image-url": "^2.1.1",
     "next": "^15.5.19",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "resend": "^6.16.0",
-    "stripe": "^22.3.0"
+    "stripe": "^22.3.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.12",
