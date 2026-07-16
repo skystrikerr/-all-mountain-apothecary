@@ -33,11 +33,59 @@
   animation: fade-up 0.7s ease-out both;
 }
 
+/* Mountain backdrop ridgeline drift — content is two copies of the same
+   seamless path, so -50% loops without a visible jump. */
+@keyframes ridge-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ridge {
+  animation: ridge-drift linear infinite;
+}
+
+@keyframes mist-drift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+.animate-mist {
+  animation: mist-drift 16s ease-in-out infinite alternate;
+}
+
+/* Scroll-reveal (driven by components/Reveal.jsx) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-splash-in,
-  .animate-fade-up {
+  .animate-fade-up,
+  .animate-ridge,
+  .animate-mist {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

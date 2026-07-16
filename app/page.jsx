@@ -4,6 +4,8 @@ import { featuredProductsQuery, homePageQuery } from '../lib/sanity/queries'
 import { homePageDefaults } from '../lib/content-defaults'
 import ProductCard from '../components/ProductCard'
 import BottleSceneLoader from '../components/three/BottleSceneLoader'
+import MountainBackdrop from '../components/MountainBackdrop'
+import Reveal from '../components/Reveal'
 
 export const revalidate = 60
 
@@ -18,8 +20,9 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-apothecary-forest text-apothecary-cream py-16 md:py-24 px-8">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <section className="relative overflow-hidden bg-apothecary-forest text-apothecary-cream py-16 md:py-24 px-8">
+        <MountainBackdrop />
+        <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="text-center md:text-left">
             <p
               className="text-apothecary-clay uppercase tracking-widest text-sm mb-4 animate-fade-up"
@@ -56,23 +59,29 @@ export default async function HomePage() {
 
       {/* Featured Elixirs */}
       <section className="py-20 px-8 max-w-5xl mx-auto">
-        <h2 className="text-2xl font-semibold text-apothecary-forest text-center mb-12">
-          {content.featuredHeading}
-        </h2>
+        <Reveal>
+          <h2 className="text-2xl font-semibold text-apothecary-forest text-center mb-12">
+            {content.featuredHeading}
+          </h2>
+        </Reveal>
 
         {featured.length === 0 ? (
-          <div className="text-center">
-            <p className="text-gray-500 mb-8">
-              The full line is on its way — check back soon.
-            </p>
-            <Link href="/shop" className="text-apothecary-clay font-semibold hover:underline">
-              Browse the shop →
-            </Link>
-          </div>
+          <Reveal>
+            <div className="text-center">
+              <p className="text-gray-500 mb-8">
+                The full line is on its way — check back soon.
+              </p>
+              <Link href="/shop" className="text-apothecary-clay font-semibold hover:underline">
+                Browse the shop →
+              </Link>
+            </div>
+          </Reveal>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {featured.map((product) => (
-              <ProductCard key={product._id} product={product} />
+            {featured.map((product, i) => (
+              <Reveal key={product._id} delay={i * 130} className="h-full">
+                <ProductCard product={product} />
+              </Reveal>
             ))}
           </div>
         )}

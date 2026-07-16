@@ -2,6 +2,7 @@ import { client } from '../../lib/sanity/client'
 import { wholesalePageQuery } from '../../lib/sanity/queries'
 import { wholesalePageDefaults } from '../../lib/content-defaults'
 import WholesaleInquiryForm from '../../components/WholesaleInquiryForm'
+import Reveal from '../../components/Reveal'
 
 export const metadata = {
   title: 'Wholesale | All Mountain Apothecary',
@@ -22,22 +23,26 @@ export default async function WholesalePage() {
       <p className="text-gray-500 mb-12">{content.subtitle}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-        {terms.map((term) => (
-          <div key={term.label} className="bg-white rounded-2xl shadow-sm p-5">
-            <dt className="text-xs uppercase tracking-wide text-apothecary-clay font-semibold mb-1">
-              {term.label}
-            </dt>
-            <dd className="text-sm text-gray-700">{term.value}</dd>
-          </div>
+        {terms.map((term, i) => (
+          <Reveal key={term.label} delay={i * 100} className="h-full">
+            <div className="h-full bg-white rounded-2xl shadow-sm p-5">
+              <dt className="text-xs uppercase tracking-wide text-apothecary-clay font-semibold mb-1">
+                {term.label}
+              </dt>
+              <dd className="text-sm text-gray-700">{term.value}</dd>
+            </div>
+          </Reveal>
         ))}
       </div>
 
-      <h2 className="text-xl font-semibold text-apothecary-forest mb-4">
-        {content.contactHeading}
-      </h2>
-      <p className="text-gray-500 mb-6">{content.contactBody}</p>
+      <Reveal>
+        <h2 className="text-xl font-semibold text-apothecary-forest mb-4">
+          {content.contactHeading}
+        </h2>
+        <p className="text-gray-500 mb-6">{content.contactBody}</p>
 
-      <WholesaleInquiryForm />
+        <WholesaleInquiryForm />
+      </Reveal>
     </div>
   )
 }

@@ -8,7 +8,7 @@ export default function ProductCard({ product }) {
   return (
     <Link
       href={`/shop/${product.slug}`}
-      className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center gap-3 hover:shadow-md transition-shadow text-center"
+      className="h-full bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-[box-shadow,transform] duration-300 text-center"
     >
       <div className="w-full aspect-square relative rounded-xl overflow-hidden bg-apothecary-moss/10">
         {image ? (

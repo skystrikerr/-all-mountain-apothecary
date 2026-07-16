@@ -18,7 +18,8 @@ export default function BottleScene() {
         <directionalLight position={[-3, 2, -4]} intensity={0.4} color="#c88a66" />
 
         <Suspense fallback={null}>
-          <Bottle position={[0, -0.3, 0]} />
+          {/* Slightly shrunk/lowered so the taller dropper cap stays in frame */}
+          <Bottle position={[0, -0.5, 0]} scale={0.92} />
           <ContactShadows
             position={[0, -1.2, 0]}
             opacity={0.4}

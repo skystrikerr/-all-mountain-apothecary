@@ -1,6 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import MountainBackdrop from './MountainBackdrop'
+
+const SplashBottleScene = dynamic(() => import('./three/SplashBottleScene'), {
+  ssr: false,
+  loading: () => null,
+})
 
 const STORAGE_KEY = 'ama-splash-seen'
 
@@ -20,8 +27,10 @@ export default function SplashScreen() {
       return
     }
     setPhase('showing')
-    const leaveTimer = setTimeout(() => setPhase('leaving'), 2000)
-    const doneTimer = setTimeout(() => setPhase('hidden'), 2800)
+    // A little longer than the text-only version so the 3D bottle has time
+    // to load its chunk and complete at least part of a rotation.
+    const leaveTimer = setTimeout(() => setPhase('leaving'), 3200)
+    const doneTimer = setTimeout(() => setPhase('hidden'), 4000)
     return () => {
       clearTimeout(leaveTimer)
       clearTimeout(doneTimer)
@@ -43,28 +52,37 @@ export default function SplashScreen() {
       }`}
       aria-hidden="true"
     >
-      <p
-        className="text-apothecary-clay uppercase tracking-[0.35em] text-xs mb-4 animate-splash-in"
-        style={{ animationDelay: '0.15s' }}
-      >
-        Est. 2019 · Pennsylvania
-      </p>
-      <h1
-        className="text-apothecary-cream text-4xl md:text-6xl font-bold text-center px-8 animate-splash-in"
-        style={{ animationDelay: '0.4s' }}
-      >
-        All Mountain Apothecary
-      </h1>
-      <div
-        className="mt-6 h-px w-16 bg-apothecary-clay/60 animate-splash-in"
-        style={{ animationDelay: '0.7s' }}
-      />
-      <p
-        className="text-apothecary-cream/60 text-sm mt-6 animate-splash-in"
-        style={{ animationDelay: '0.9s' }}
-      >
-        elixirs &amp; herbal remedies, sourced from the mountains
-      </p>
+      <MountainBackdrop />
+      <div className="relative z-10 flex flex-col items-center">
+        <div
+          className="w-44 h-60 md:w-56 md:h-80 mb-2 animate-splash-in"
+          style={{ animationDelay: '0.1s' }}
+        >
+          <SplashBottleScene />
+        </div>
+        <p
+          className="text-apothecary-clay uppercase tracking-[0.35em] text-xs mb-4 animate-splash-in"
+          style={{ animationDelay: '0.15s' }}
+        >
+          Est. 2019 · Pennsylvania
+        </p>
+        <h1
+          className="text-apothecary-cream text-4xl md:text-6xl font-bold text-center px-8 animate-splash-in"
+          style={{ animationDelay: '0.4s' }}
+        >
+          All Mountain Apothecary
+        </h1>
+        <div
+          className="mt-6 h-px w-16 bg-apothecary-clay/60 animate-splash-in"
+          style={{ animationDelay: '0.7s' }}
+        />
+        <p
+          className="text-apothecary-cream/60 text-sm mt-6 animate-splash-in"
+          style={{ animationDelay: '0.9s' }}
+        >
+          elixirs &amp; herbal remedies, sourced from the mountains
+        </p>
+      </div>
     </div>
   )
 }
