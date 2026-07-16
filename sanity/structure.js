@@ -5,6 +5,7 @@ const SINGLETONS = [
   { id: 'homePage', title: 'Home Page' },
   { id: 'ourStoryPage', title: 'Our Story Page' },
   { id: 'wholesalePage', title: 'Wholesale Page' },
+  { id: 'disclaimerPage', title: 'Terms of Use / Disclaimer' },
 ]
 
 export const structure = (S) =>

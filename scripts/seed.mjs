@@ -12,6 +12,7 @@ import {
   homePageDefaults,
   ourStoryPageDefaults,
   wholesalePageDefaults,
+  disclaimerPageDefaults,
 } from '../lib/content-defaults.js'
 
 const token = process.env.SANITY_API_TOKEN
@@ -154,5 +155,15 @@ const wholesalePageDoc = {
 }
 await client.createIfNotExists(wholesalePageDoc)
 console.log('Seeded: Wholesale Page')
+
+const disclaimerDoc = {
+  _id: 'disclaimerPage',
+  _type: 'disclaimerPage',
+  title: disclaimerPageDefaults.title,
+  subtitle: disclaimerPageDefaults.subtitle,
+  body: toBlocks(disclaimerPageDefaults.bodyPlainText),
+}
+await client.createIfNotExists(disclaimerDoc)
+console.log('Seeded: Terms of Use / Disclaimer')
 
 console.log('\nDone. Add product photos in Studio — images are required before a product is fully valid.')
