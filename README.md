@@ -1,2 +1,5 @@
 # -all-mountain-apothecary
-A site im working on for a friend that will be selling high quality elixirs from plants locally sourced from PA
+
+
+
+this is an app i build for a friend to sell his wild forged elixirs
