@@ -10,6 +10,7 @@
 //         │  SPEAKEASY  │     LOBBY      │   KITCHEN    │
 //   z= 22 └─────────────┴──────[door]────┴──────────────┘
 //                         STREET (player start)
+import { makeSky, makeRain } from '../../engine/sky.js';
 import { MAT, roundTable, chair, crate, barrel, car1930, lampPost, plant, sign, chandelier, shelves, timePortal } from './props.js';
 
 const IN_H = 4.5; // standard interior ceiling
@@ -31,13 +32,14 @@ function buildHotel(L) {
   car1930(L, -14, 30, '#18181c');
   car1930(L, 9, 36.5, '#3a1414');
   car1930(L, 23, 30, '#1c2a1c');
-  lampPost(L, -22, 25.2); lampPost(L, 0, 42.6, 4.5, false); lampPost(L, 20, 25.2);
+  lampPost(L, -22, 25.2); lampPost(L, 20, 25.2); lampPost(L, -8, 25.2); lampPost(L, 8, 25.2);
+  lampPost(L, -18, 42.6); lampPost(L, 0, 42.6); lampPost(L, 18, 42.6);
   L.boxC(-5, 0.15, 27.2, 1.4, 1.3, 0.8, MAT.darkWood);          // newspaper stand
   crate(L, 27, 0, 38); crate(L, 28.3, 0, 38); crate(L, 27.6, 1.2, 38, 1.1);
   barrel(L, -28, 40); barrel(L, -27, 40.2);
 
   // ------------------------------------------------------------ facade & shell
-  L.wallX(22, -32, 32, { h: 14, t: 0.5, mat: MAT.brick, doors: [{ at: 0, w: 3.6, h: 3.4 }] });
+  L.wallX(22, -32, 32, { h: 14, t: 0.5, mat: MAT.brick, doors: [{ at: 0, w: 3.6, h: 3.4 }], trim: false });
   L.box(-2.6, 3.4, 22.25, 2.6, 3.8, 23.6, MAT.redCloth, { solid: false });     // awning
   sign(L, 'HOTEL STILETTO', 0, 6, 22.3, 8, 2, 'z+', { fg: '#ff3bd6', bg: '#1a0a14', w: 512, h: 128, font: 'bold 64px "Arial Black", Impact' });
   for (let x = -26; x <= 26; x += 6.5) {
@@ -189,10 +191,20 @@ export default {
   env: {
     sky: '#0b0d1f', fog: ['#141730', 30, 120],
     hemi: 0.6, hemiSky: '#8899cc', hemiGround: '#2a2018', ambient: '#303048', ambientIntensity: 0.5,
-    sun: { dir: [-25, 45, 60], color: '#9fb0ff', intensity: 0.9, shadowRange: 36, target: [0, 0, 32] },
+    sun: { dir: [-25, 45, 60], color: '#9fb0ff', intensity: 1.1, shadowRange: 36, target: [0, 0, 32] },
+    skyDome: () => makeSky({
+      top: '#05061a', mid: '#141a40', horizon: '#3a2a4a', bottom: '#141730', seed: 5, stars: 700,
+      moon: { u: 0.62, v: 0.2, r: 13, color: '#e8ecff', glow: 'rgba(170,190,255,0.45)', craters: true },
+      clouds: { count: 10, color: '120,110,170', alpha: 0.18 },
+      skyline: { color: '#0c0d1c', windows: true },
+    }),
   },
   build(L, { story }) {
     buildHotel(L);
+    // Rain on the street
+    const rain = makeRain({ minX: -32, maxX: 32, minZ: 22.6, maxZ: 44, top: 14 });
+    L.prop(rain.object);
+    L.animated.push({ update: (dt) => rain.update(dt) });
     // Triggers & markers (used by both variants)
     L.trigger('lobby', -10, 6, 10, 21);
     L.trigger('portal', -2.5, -18.5, 2.5, -15);

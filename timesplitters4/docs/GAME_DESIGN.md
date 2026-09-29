@@ -194,8 +194,10 @@ wall, lit floor, void), items (spawns, weapon slots 1–5, health, armour, red/b
 themes, sizes 8×8–24×24. Validates spawns, saves to local storage, exports/imports JSON, test-plays instantly.
 
 ## Art & audio direction
-* 64×64 procedural textures, nearest filtering, flat-shaded low-poly shapes; optional half-res "PS2 pixel mode".
-* Warm practical lights, coloured neon, fog, sun shadows outdoors; ACES tone mapping.
+* PS2-era rendering: 480p soft upscale, baked vertex lighting with ambient occlusion and soft shadows, bloom,
+  light halos, blob shadows, ordered dither; 128×128 hand-painted-style procedural textures.
+* Low-poly characters with rounded limbs, knee/elbow joints, painted faces (varied eyes/brows/mouths) and clothes.
+* Warm practical lights, coloured neon, painted skies (night skyline, dusk hills), rain, fog; ACES tone mapping.
 * Chunky bevelled buttons, italic heavy type, orange/blue/cyan palette, animated stripes and a time-vortex.
 * Synthesized SFX per weapon family, positional stereo; per-level chiptune loops.
 

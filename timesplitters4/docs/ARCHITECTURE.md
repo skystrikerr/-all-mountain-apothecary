@@ -10,7 +10,10 @@ src/
     collision.js          CollisionWorld: AABB solids, XZ grid broadphase, swept body movement, ray casts (2D DDA)
     nav.js                NavGrid: 2.5D walkable grid sampled from the collision world, A*, path smoothing
     levelBuilder.js       Level DSL (box/wall/floor/stairs/light/spawn/pickup/enemy/trigger…) → merged meshes + solids
-    textures.js           Procedural 64×64 nearest-filtered canvas textures + material cache, sign text textures
+    textures.js           Procedural 128×128 painted textures, lit + baked (unlit, flash-lit) material caches, sign text
+    lightBaker.js         PS2-style vertex light baking: hemisphere × ambient occlusion + point lights + sun, ray-traced shadows
+    postfx.js             Render pipeline: all views → 480p HDR buffer → bloom → grade/vignette → ACES → ordered dither
+    sky.js                Painted sky domes (stars, moon/sun, clouds, skyline/hills) and rain
     input.js              Keyboard/mouse (pointer lock) + Gamepad API → per-player "commands"; settings
     audio.js              Synthesized WebAudio SFX with stereo panning + step-sequencer music
   game/                   Gameplay
@@ -24,7 +27,8 @@ src/
     modes.js              Arcade modes: Deathmatch, Team DM, Capture the Bag, Elimination, Infection, Survival
     mission.js            Story mode: objectives, scripts, checkpoints, difficulty, medals
     playerView.js         Per-local-player camera, first-person viewmodel, split-screen viewport, HUD state
-    characterModel.js     Procedural blocky character models + animation (walk, aim, crouch, death)
+    characterModel.js     Procedural low-poly characters (rounded limbs, knees/elbows) + animation (walk, aim, crouch, death)
+    characterTextures.js  Painted faces (eyes, brows, nose, mouth variations) and clothing textures
     weaponModel.js        Procedural weapon meshes (viewmodel, third-person, pickups)
     progress.js           localStorage progression: medals, stats, unlocks
   content/                Pure data (easy to extend)
@@ -106,9 +110,20 @@ already-alert when a hook calls `spawnGroup`. Completing an objective saves a ch
 layer so their camera doesn't see their own model; each view has a separate viewmodel scene rendered after a
 depth clear. HUD panels are positioned DOM overlays matching the viewport rectangles.
 
-**PS2 look, modern light.** 64×64 procedural textures with nearest filtering, flat-shaded Lambert materials,
-optional half-resolution "pixel mode", plus ACES tone mapping, hemisphere + point lights, directional sun
-shadows (outdoor levels), fog, emissive signage and additive muzzle flashes/explosions.
+**PS2 look.** The frame is rendered like a 2002 console game:
+* *Resolution*: all views render into one 480-line HDR buffer (576p/720p/native selectable), upscaled bilinearly
+  for the soft TV look; a faint 4×4 ordered dither mimics the PS2's 16-bit framebuffer.
+* *Baked vertex lighting*: level boxes are tessellated into ~1 m quads; `lightBaker.js` gives every vertex
+  hemisphere light × ambient occlusion (10 hemisphere rays) plus each static point light and the sun with
+  soft ray-traced shadows (3 jittered samples), in the same units as three.js Lambert (÷π) so baked walls and
+  realtime-lit characters match. Levels render unlit (`MeshBasicMaterial × vertex colour`); a small shader hook
+  adds the 3 dynamic flash lights (muzzle flashes, explosions) on top. Baking a whole level takes < 1 s at load.
+* *Glow*: light fixtures get additive halo sprites; emissive signage is over-bright and picked up by bloom.
+* *Shadows*: no shadow maps — static shadows are baked, actors get blob shadows.
+* *Materials*: 128×128 painted textures (bevels, grime, grain) with mipmapped bilinear + anisotropic filtering;
+  guns use Phong specular plus a painted reflection env-map; characters use rounded, smooth-shaded limbs with
+  painted faces and clothing.
+* *Atmosphere*: painted sky domes, fog, rain, colour grade + vignette, ACES tone mapping.
 
 ## Extending
 

@@ -5,6 +5,22 @@ import { CharacterModel } from './characterModel.js';
 import { WEAPONS } from '../content/weapons.js';
 import { WeaponState } from './weaponSystem.js';
 import { audio } from '../engine/audio.js';
+import { radialTexture } from '../engine/textures.js';
+
+let blobGeo = null, blobMat = null;
+function blobShadow() {
+  if (!blobGeo) {
+    blobGeo = new THREE.PlaneGeometry(1, 1);
+    blobGeo.rotateX(-Math.PI / 2);
+    blobMat = new THREE.MeshBasicMaterial({
+      map: radialTexture('rgba(0,0,0,0.62)', 'rgba(0,0,0,0)', 64, 'rgba(0,0,0,0.45)'), transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    });
+  }
+  const m = new THREE.Mesh(blobGeo, blobMat);
+  m.renderOrder = 1;
+  return m;
+}
 
 export const TEAM_COLORS = ['#ff3b3b', '#3b8bff', '#3bff6b', '#ffd23b'];
 export const TEAM_NAMES = ['Red', 'Blue', 'Green', 'Gold'];
@@ -55,6 +71,9 @@ export class Actor {
     this.model.root.userData.actor = this;
     game.scene.add(this.model.root);
     this.model.root.visible = false;
+    this.shadow = blobShadow();
+    this.shadow.visible = false;
+    game.scene.add(this.shadow);
   }
 
   get eyeHeight() { return (this.crouching ? 0.98 : 1.62) * Math.min(1.1, this.sizeScale); }
@@ -209,6 +228,16 @@ export class Actor {
 
   updateModel(dt) {
     this.syncModel();
+    // Blob shadow on the ground below (fades/shrinks with height)
+    const g = this.game.world.groundHeight(this.pos.x, this.pos.z, this.pos.y + 0.3, 0.2);
+    const h = this.pos.y - g;
+    const show = this.model.root.visible && Number.isFinite(g) && h < 4 && this.model.deadT < 2.5;
+    this.shadow.visible = show;
+    if (show) {
+      const s = (this.alive ? 1.0 : 1.6) * this.sizeScale * Math.max(0.3, 1 - h * 0.2);
+      this.shadow.scale.set(s, 1, s);
+      this.shadow.position.set(this.pos.x, g + 0.02, this.pos.z);
+    }
     this.model.animate(dt, {
       speed: this.speed, crouch: this.crouching, pitch: this.pitch, alive: this.alive,
       airborne: !this.body.onGround && this.alive,
@@ -217,6 +246,7 @@ export class Actor {
 
   dispose() {
     this.game.scene.remove(this.model.root);
+    this.game.scene.remove(this.shadow);
   }
 }
 

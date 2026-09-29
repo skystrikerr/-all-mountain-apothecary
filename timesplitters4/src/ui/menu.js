@@ -9,6 +9,7 @@ import { DIFFICULTY } from '../game/mission.js';
 import { settings, saveSettings, input } from '../engine/input.js';
 import { audio } from '../engine/audio.js';
 import { fmtTime } from './hud.js';
+import { RESOLUTIONS } from '../engine/postfx.js';
 import { CharacterPreview } from './preview.js';
 import { Editor } from './editor.js';
 
@@ -402,7 +403,9 @@ export class Menu {
           <label>Field of view</label><div><input type="range" min="60" max="110" step="1" value="${s.fov}" data-s="fov"> <span class="value-tag">${s.fov}</span></div>
           <label>Invert Y</label><div><input type="checkbox" data-s="invertY" ${s.invertY ? 'checked' : ''}></div>
           <label>Controller auto-aim</label><div><input type="checkbox" data-s="aimAssist" ${s.aimAssist ? 'checked' : ''}></div>
-          <label>PS2 pixel mode</label><div><input type="checkbox" data-s="pixelMode" ${s.pixelMode ? 'checked' : ''}> low-res render, chunky pixels</div>
+          <label>Render resolution</label><select data-s="resolution">${Object.entries(RESOLUTIONS).map(([k, r]) => `<option value="${k}" ${k === s.resolution ? 'selected' : ''}>${r.name}</option>`).join('')}</select>
+          <label>Bloom glow</label><div><input type="checkbox" data-s="bloom" ${s.bloom ? 'checked' : ''}></div>
+          <label>Console dithering</label><div><input type="checkbox" data-s="dither" ${s.dither ? 'checked' : ''}></div>
           <label>Show FPS</label><div><input type="checkbox" data-s="showFps" ${s.showFps ? 'checked' : ''}></div>
           <label>Master volume</label><div><input type="range" min="0" max="1" step="0.05" value="${v.master}" data-a="master"> <span class="value-tag">${v.master}</span></div>
           <label>Music volume</label><div><input type="range" min="0" max="1" step="0.05" value="${v.music}" data-a="music"> <span class="value-tag">${v.music}</span></div>
@@ -414,7 +417,7 @@ export class Menu {
     </div>`);
     const apply = (e) => {
       const t = e.target;
-      const val = t.type === 'checkbox' ? t.checked : parseFloat(t.value);
+      const val = t.type === 'checkbox' ? t.checked : t.tagName === 'SELECT' ? t.value : parseFloat(t.value);
       if (t.dataset.s) { s[t.dataset.s] = val; saveSettings(); this.app.applySettings(); }
       if (t.dataset.a) { v[t.dataset.a] = val; audio.applyVolume(); try { localStorage.setItem('ts4.volume', JSON.stringify(v)); } catch { /* ignore */ } }
       if (t.dataset.cheat != null) this.app.progress.unlockAll = val;

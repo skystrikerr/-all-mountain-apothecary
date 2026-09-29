@@ -42,8 +42,9 @@ export class PlayerView {
     // Viewmodel scene
     this.vmScene = new THREE.Scene();
     this.vmCamera = new THREE.PerspectiveCamera(54, 1, 0.01, 10);
-    this.vmScene.add(new THREE.HemisphereLight('#ffffff', '#554433', 1.6));
-    const key = new THREE.DirectionalLight('#fff4dd', 1.4); key.position.set(1, 2, 1); this.vmScene.add(key);
+    this.vmScene.add(new THREE.HemisphereLight('#dfe6ff', '#3a2e24', 0.9));
+    const key = new THREE.DirectionalLight('#fff0d8', 2.4); key.position.set(1.5, 2, 0.5); this.vmScene.add(key);
+    const rim = new THREE.DirectionalLight('#9fc0ff', 1.2); rim.position.set(-2, 0.5, -1.5); this.vmScene.add(rim);
     this.vmRoot = new THREE.Group();
     this.vmScene.add(this.vmRoot);
     this.guns = [null, null];

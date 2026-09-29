@@ -28,8 +28,10 @@ const V = [
 const filter = process.argv[2];
 for (const [name, level, type, x, y, z, yaw, pitch, weapon] of V) {
   if (filter && !name.includes(filter)) continue;
+  const t0 = Date.now();
   await page.evaluate(({ level, type }) => window.__ts4.startGame({ type, level, mode: 'deathmatch', difficulty: 'normal', weaponSet: 'classic',
     players: [{ character: 'ada', source: { kbm: true, pad: 0 } }], bots: type === 'arcade' ? [{ character: 'vinnie', skill: 0 }, { character: 'knight', skill: 0 }, { character: 'ninja', skill: 0 }] : [] }), { level, type });
+  const loadMs = Date.now() - t0;
   await page.evaluate(({ x, y, z, yaw, pitch, weapon, dual }) => {
     const g = window.__game, p = g.localActors[0];
     p.pos.set(x, y, z); p.body.x = x; p.body.y = y + 0.05; p.body.z = z; p.yaw = yaw; p.pitch = pitch;
@@ -42,6 +44,6 @@ for (const [name, level, type, x, y, z, yaw, pitch, weapon] of V) {
   }, { x, y, z, yaw, pitch, weapon });
   await page.waitForTimeout(150);
   await page.screenshot({ path: `scripts/shots/views/${name}.png` });
-  console.log('shot', name);
+  console.log('shot', name, `load ${loadMs}ms`);
 }
 await browser.close(); await server.close();

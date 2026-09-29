@@ -2,6 +2,7 @@
 // a great hall on the north side, market stalls, siege scaffolds and a central well.
 import * as THREE from 'three';
 import { MAT, crate, barrel, sign } from './props.js';
+import { makeSky } from '../../engine/sky.js';
 
 function stall(L, x, z, cloth) {
   L.boxC(x, 0, z, 3, 1, 1.4, MAT.lightWood);
@@ -25,19 +26,18 @@ export default {
     sky: '#e08a50', fog: ['#b86a48', 45, 140],
     hemi: 0.8, hemiSky: '#ffd0a0', hemiGround: '#40302a', ambient: '#503838', ambientIntensity: 0.5,
     sun: { dir: [-60, 35, 20], color: '#ffb070', intensity: 1.8, shadowRange: 38 },
-    skyDome: () => {
-      const g = new THREE.Mesh(new THREE.SphereGeometry(300, 16, 8), new THREE.MeshBasicMaterial({ color: '#f0a060', side: THREE.BackSide, fog: false }));
-      const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(18, 16), new THREE.MeshBasicMaterial({ color: '#fff0c0', fog: false }));
-      sunDisc.position.set(-240, 120, 80); sunDisc.lookAt(0, 0, 0);
-      g.add(sunDisc);
-      return g;
-    },
+    skyDome: () => makeSky({
+      top: '#3a4a8a', mid: '#c87a78', horizon: '#ffb070', bottom: '#8a5a48', seed: 11,
+      sun: { u: 0.5, v: 0.4, r: 16, color: '#fff2c8', glow: 'rgba(255,200,120,0.7)' },
+      clouds: { count: 22, color: '255,190,150', alpha: 0.35 },
+      hills: { color: '#4a3a3a', far: '#7a5a58' },
+    }),
   },
   build(L) {
     L.floor(-24, -24, 24, 24, MAT.dirt);
     L.box(-6, 0.001, -2, 6, 0.02, 24, MAT.stone, { solid: false }); // cobbled path from gate
     // Curtain walls + towers
-    const wall = { h: 10, t: 1.5, mat: MAT.stone };
+    const wall = { h: 10, t: 1.5, mat: MAT.stone, trim: false };
     L.wallX(-23, -24, 24, wall);
     L.wallX(23, -24, 24, wall);
     L.wallZ(-23, -24, 24, wall);

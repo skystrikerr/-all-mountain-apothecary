@@ -2,13 +2,40 @@
 // A `muzzle` Object3D child marks where tracers and flashes originate.
 import * as THREE from 'three';
 
+let envTex = null;
+/** Tiny painted reflection map: the classic PS2 "shiny gun" look without real reflections. */
+function gunEnv() {
+  if (envTex) return envTex;
+  const c = document.createElement('canvas'); c.width = 128; c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 64);
+  g.addColorStop(0, '#dfe8ff'); g.addColorStop(0.45, '#8a98b8'); g.addColorStop(0.5, '#fff6e0'); g.addColorStop(0.56, '#5a4a3a'); g.addColorStop(1, '#1a1410');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 64);
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(20, 10, 18, 8); ctx.fillRect(84, 14, 10, 6);
+  envTex = new THREE.CanvasTexture(c);
+  envTex.mapping = THREE.EquirectangularReflectionMapping;
+  envTex.colorSpace = THREE.SRGBColorSpace;
+  return envTex;
+}
+
 const mats = new Map();
 function mat(color, glow = false) {
   const key = color + (glow ? 'g' : '');
   if (!mats.has(key)) {
-    mats.set(key, glow
-      ? new THREE.MeshBasicMaterial({ color })
-      : new THREE.MeshLambertMaterial({ color, flatShading: true }));
+    let m;
+    if (glow) m = new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(2) });
+    else {
+      // Gun metal gets sharp PS2-style specular highlights; warm colours (wood/grips) stay satin.
+      const c = new THREE.Color(color);
+      const hsl = {}; c.getHSL(hsl);
+      const wood = hsl.h > 0.02 && hsl.h < 0.14 && hsl.s > 0.25;
+      m = new THREE.MeshPhongMaterial({
+        color: c, shininess: wood ? 18 : 80,
+        specular: wood ? new THREE.Color('#2a2218') : new THREE.Color('#9aa0aa'),
+        envMap: wood ? null : gunEnv(), combine: THREE.MixOperation, reflectivity: wood ? 0 : 0.2,
+      });
+    }
+    mats.set(key, m);
   }
   return mats.get(key);
 }
@@ -18,7 +45,7 @@ const box = (g, w, h, d, x, y, z, color, glow) => {
   g.add(m);
   return m;
 };
-const cyl = (g, r, len, x, y, z, color, glow, seg = 8) => {
+const cyl = (g, r, len, x, y, z, color, glow, seg = 12) => {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, seg), mat(color, glow));
   m.rotation.x = Math.PI / 2;
   m.position.set(x, y, z);

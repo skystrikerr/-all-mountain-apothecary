@@ -37,7 +37,7 @@ export default {
   navMaxFloor: 1.0,
   env: {
     sky: '#20183a', fog: ['#2a1f44', 40, 110],
-    hemi: 1.1, hemiSky: '#fff4e0', hemiGround: '#6a4a6a', ambient: '#505070', ambientIntensity: 0.6,
+    hemi: 0.85, hemiSky: '#fff4e0', hemiGround: '#6a4a6a', ambient: '#505070', ambientIntensity: 0.6,
   },
   build(L) {
     // floor, walls, roof
@@ -47,7 +47,8 @@ export default {
     L.wallZ(-26, -26, 26, { h: H, mat: MAT.mallWall, doors: [{ at: 0, w: 5, h: 3.5 }] });
     L.wallZ(26, -26, 26, { h: H, mat: MAT.mallWall, doors: [{ at: 0, w: 5, h: 3.5 }] });
     L.ceiling(-27, -34, 27, 27, H, MAT.plaster);
-    for (const [x, z] of [[-10, -10], [10, -10], [-10, 10], [10, 10]]) L.box(x - 4, H - 0.05, z - 4, x + 4, H, z + 4, MAT.glowWhite, { solid: false });
+    const skylight = { tex: 'grate', opts: { base: '#e8f0ff' }, emissive: '#dde8ff', emissiveIntensity: 0.62, scale: 0.5 };
+    for (const [x, z] of [[-10, -10], [10, -10], [-10, 10], [10, 10]]) L.box(x - 4, H - 0.05, z - 4, x + 4, H, z + 4, skylight, { solid: false });
     // storefront windows / neon along walls
     const fronts = [
       ['PIZZA PLANET X', -16, 'z-'], ['SK8 SHACK', 16, 'z-'], ['VIDEO VAULT', -16, 'z+'], ['CYBER CAFE', 16, 'z+'],

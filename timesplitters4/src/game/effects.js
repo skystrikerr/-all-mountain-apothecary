@@ -1,5 +1,6 @@
 // Visual effects: pooled tracers/beams, CPU particles, bullet decals, explosion fireballs and flash lights.
 import * as THREE from 'three';
+import { flashUniforms, FLASH_COUNT } from '../engine/textures.js';
 
 const MAX_PARTICLES = 1400;
 
@@ -205,6 +206,13 @@ export class Effects {
       if (b.t <= 0) b.m.visible = false;
     }
     for (const f of this.flashes) if (f.t > 0) { f.t -= dt; f.l.intensity = f.t > 0 ? f.i0 * (f.t / f.max) : 0; }
+    // Mirror the flash lights into the baked level shader
+    for (let i = 0; i < FLASH_COUNT; i++) {
+      const f = this.flashes[i];
+      flashUniforms.uFlashPos.value[i].copy(f.l.position);
+      flashUniforms.uFlashColor.value[i].copy(f.l.color).multiplyScalar(f.l.intensity * 0.45);
+      flashUniforms.uFlashDist.value[i] = Math.max(0.1, f.l.distance);
+    }
     for (const f of this.fireballs) if (f.t > 0) {
       f.t -= dt;
       const k = 1 - f.t / f.max;

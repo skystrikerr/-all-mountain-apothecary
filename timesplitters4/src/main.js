@@ -4,6 +4,7 @@ import './ui/styles.css';
 import { input, settings } from './engine/input.js';
 import { audio } from './engine/audio.js';
 import { Game } from './game/game.js';
+import { PostFX } from './engine/postfx.js';
 import { Menu } from './ui/menu.js';
 import { MenuScene } from './ui/menuScene.js';
 import { Progress } from './game/progress.js';
@@ -13,12 +14,11 @@ class App {
   constructor() {
     this.canvas = document.getElementById('game');
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false, powerPreference: 'high-performance' });
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.autoClear = false;
+    this.post = new PostFX(this.renderer);
     this.hudRoot = document.getElementById('hud-root');
     this.progress = new Progress();
     this.progress.takeNewUnlocks();
@@ -58,9 +58,8 @@ class App {
   }
 
   applySettings() {
-    const pr = settings.pixelMode ? 0.5 : Math.min(window.devicePixelRatio || 1, 1.5);
-    this.renderer.setPixelRatio(pr);
-    this.canvas.classList.toggle('pixel', settings.pixelMode);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.post.configure({ resolution: settings.resolution, bloom: settings.bloom, dither: settings.dither });
     this._resize();
     if (this.fpsEl) this.fpsEl.style.display = settings.showFps ? 'block' : 'none';
   }

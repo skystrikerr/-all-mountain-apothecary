@@ -1,5 +1,6 @@
 // Builds a playable arena from a Map Maker tile map (see ui/editor.js for the format).
 import { MAT, crate } from './props.js';
+import { makeSky } from '../../engine/sky.js';
 
 export const TILE = 4;
 export const TILES = [
@@ -78,7 +79,8 @@ export default {
     this.music = theme.music;
     this._env = theme.indoor
       ? { sky: theme.sky, hemi: 0.9, hemiSky: '#ddeeff', hemiGround: '#443322', ambient: '#404050', ambientIntensity: 0.6 }
-      : { sky: theme.sky, hemi: 0.8, hemiSky: '#ffd0a0', hemiGround: '#40302a', sun: { dir: [-40, 40, 20], color: '#ffc080', intensity: 1.6, shadowRange: map.w * TILE * 0.6 } };
+      : { sky: theme.sky, hemi: 0.8, hemiSky: '#ffd0a0', hemiGround: '#40302a', sun: { dir: [-40, 40, 20], color: '#ffc080', intensity: 1.6, shadowRange: map.w * TILE * 0.6 },
+        skyDome: () => makeSky({ top: '#3a4a8a', mid: '#c87a78', horizon: '#ffb070', bottom: '#8a5a48', seed: 9, clouds: { count: 20, color: '255,190,150', alpha: 0.3 }, hills: { color: '#4a3a3a', far: '#7a5a58' } }) };
     const W = map.w, H = map.h;
     const wallH = theme.indoor ? 5 : 7;
     const ox = -W * TILE / 2, oz = -H * TILE / 2;

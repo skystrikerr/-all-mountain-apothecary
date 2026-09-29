@@ -18,7 +18,9 @@ export const settings = {
   invertY: false,
   fov: 80,
   aimAssist: true,
-  pixelMode: true,
+  resolution: 'ps2',
+  bloom: true,
+  dither: true,
   showFps: false,
 };
 

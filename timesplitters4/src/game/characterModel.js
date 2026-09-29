@@ -1,14 +1,62 @@
-// Blocky, chunky PS2-style character models assembled from boxes, with procedural animation.
+// PS2-style low-poly characters: rounded, smooth-shaded limbs with knee/elbow joints, painted faces and
+// clothing textures, plus a big library of hats/heads/accessories. Fully procedural, animated in code.
 import * as THREE from 'three';
 import { buildWeaponModel } from './weaponModel.js';
+import { faceTexture, clothTexture, fabricTexture } from './characterTextures.js';
 
-function M(color, glow = false) {
-  return glow ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color, flatShading: true });
+function M(color, glow = false, map = null) {
+  if (glow) return new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(1.8) });
+  return new THREE.MeshLambertMaterial({ color, map });
 }
+
+const geoCache = new Map();
+/** Box with rounded corners (spherified subdivided box) and smooth ellipsoid-style normals. */
+function roundedBoxGeo(w, h, d, round = 0.45) {
+  const key = `rb${w},${h},${d},${round}`;
+  if (geoCache.has(key)) return geoCache.get(key);
+  const g = new THREE.BoxGeometry(w, h, d, 3, 3, 3);
+  const P = g.attributes.position, N = g.attributes.normal;
+  const hw = w / 2, hh = h / 2, hd = d / 2;
+  const v = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    v.set(P.getX(i) / hw, P.getY(i) / hh, P.getZ(i) / hd);
+    const s = v.clone().normalize().multiplyScalar(Math.SQRT2 * 0.82);
+    v.lerp(s, round);
+    v.set(v.x * hw, v.y * hh, v.z * hd);
+    P.setXYZ(i, v.x, v.y, v.z);
+    n.set(v.x / (hw * hw), v.y / (hh * hh), v.z / (hd * hd)).normalize();
+    // keep a bit of the flat-face normal so faces still read as planes
+    n.lerp(new THREE.Vector3(N.getX(i), N.getY(i), N.getZ(i)), 0.25).normalize();
+    N.setXYZ(i, n.x, n.y, n.z);
+  }
+  geoCache.set(key, g);
+  return g;
+}
+function cylGeo(rTop, rBot, len) {
+  const key = `cy${rTop},${rBot},${len}`;
+  if (geoCache.has(key)) return geoCache.get(key);
+  const g = new THREE.CylinderGeometry(rTop, rBot, len, 9, 1);
+  g.translate(0, -len / 2, 0); // pivot at the top
+  geoCache.set(key, g);
+  return g;
+}
+
 function B(parent, w, h, d, x, y, z, material) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z);
-  m.castShadow = true;
+  parent.add(m);
+  return m;
+}
+/** Rounded box part. */
+function RB(parent, w, h, d, x, y, z, material, round = 0.45) {
+  const m = new THREE.Mesh(roundedBoxGeo(w, h, d, round), material);
+  m.position.set(x, y, z);
+  parent.add(m);
+  return m;
+}
+/** Limb segment hanging down from its pivot. */
+function limb(parent, rTop, rBot, len, material) {
+  const m = new THREE.Mesh(cylGeo(rTop, rBot, len), material);
   parent.add(m);
   return m;
 }
@@ -22,11 +70,15 @@ export class CharacterModel {
     this.root = new THREE.Group();
     this.body = new THREE.Group();
     this.root.add(this.body);
+    const fabric = fabricTexture();
     this.mats = {
       skin: M(look.skin || '#e0b090'),
-      top: M(look.top || '#555'),
-      bottom: M(look.bottom || '#333'),
-      shoes: M('#1d1a18'),
+      top: M(look.top || '#555', false, fabric),
+      bottom: M(look.bottom || '#333', false, fabric),
+      shirtFront: M('#ffffff', false, clothTexture(character, 'front')),
+      shirtBack: M('#ffffff', false, clothTexture(character, 'back')),
+      face: M('#ffffff', false, faceTexture(character)),
+      shoes: new THREE.MeshPhongMaterial({ color: '#1d1a18', shininess: 40, specular: '#333' }),
       hair: M(look.hair || '#222'),
       hat: M(look.hatColor || '#333'),
       dark: M('#111'),
@@ -46,30 +98,44 @@ export class CharacterModel {
   _build(look) {
     const m = this.mats;
     const body = this.body;
-    // Hips / legs
+    // Hips / legs (thigh → knee → shin → shoe)
     this.hips = new THREE.Group(); this.hips.position.y = 0.92; body.add(this.hips);
-    this.legL = new THREE.Group(); this.legL.position.set(-0.12, 0, 0); this.hips.add(this.legL);
-    this.legR = new THREE.Group(); this.legR.position.set(0.12, 0, 0); this.hips.add(this.legR);
+    RB(this.hips, 0.4, 0.2, 0.24, 0, -0.04, 0, m.bottom, 0.4);
+    this.legL = new THREE.Group(); this.legL.position.set(-0.11, -0.06, 0); this.hips.add(this.legL);
+    this.legR = new THREE.Group(); this.legR.position.set(0.11, -0.06, 0); this.hips.add(this.legR);
+    this.knees = [];
     for (const leg of [this.legL, this.legR]) {
-      B(leg, 0.17, 0.5, 0.2, 0, -0.25, 0, m.bottom);
-      B(leg, 0.15, 0.38, 0.17, 0, -0.68, 0, m.bottom);
-      B(leg, 0.17, 0.1, 0.28, 0, -0.87, -0.04, m.shoes);
+      limb(leg, 0.1, 0.082, 0.44, m.bottom);
+      const knee = new THREE.Group(); knee.position.y = -0.42; leg.add(knee);
+      limb(knee, 0.08, 0.066, 0.4, m.bottom);
+      RB(knee, 0.15, 0.1, 0.27, 0, -0.41, -0.045, m.shoes, 0.5);
+      this.knees.push(knee);
     }
-    // Torso
+    // Torso: shaped chest with painted shirt front
     this.torso = new THREE.Group(); this.torso.position.y = 0.92; body.add(this.torso);
-    B(this.torso, 0.46, 0.58, 0.26, 0, 0.29, 0, m.top);
-    B(this.torso, 0.44, 0.08, 0.25, 0, 0.02, 0, m.bottom); // belt line
-    // Arms
-    this.armL = new THREE.Group(); this.armL.position.set(-0.3, 0.52, 0); this.torso.add(this.armL);
-    this.armR = new THREE.Group(); this.armR.position.set(0.3, 0.52, 0); this.torso.add(this.armR);
+    const chest = new THREE.Mesh(roundedBoxGeo(0.46, 0.6, 0.27, 0.35),
+      [m.top, m.top, m.top, m.top, m.shirtBack, m.shirtFront]);
+    chest.position.set(0, 0.3, 0);
+    chest.scale.set(1, 1, 1);
+    this.torso.add(chest);
+    limb(this.torso, 0.065, 0.075, 0.1, m.skin).position.y = 0.66; // neck
+    // Arms (upper → elbow → forearm → hand)
+    this.armL = new THREE.Group(); this.armL.position.set(-0.3, 0.53, 0); this.torso.add(this.armL);
+    this.armR = new THREE.Group(); this.armR.position.set(0.3, 0.53, 0); this.torso.add(this.armR);
+    RB(this.torso, 0.18, 0.16, 0.2, -0.27, 0.54, 0, m.top, 0.6); // shoulders
+    RB(this.torso, 0.18, 0.16, 0.2, 0.27, 0.54, 0, m.top, 0.6);
+    this.elbows = [];
     for (const arm of [this.armL, this.armR]) {
-      B(arm, 0.14, 0.32, 0.15, 0, -0.14, 0, m.top);
-      this.teamBand = B(arm, 0.15, 0.05, 0.16, 0, -0.04, 0, m.team);
-      B(arm, 0.12, 0.28, 0.13, 0, -0.44, 0, m.skin);
-      B(arm, 0.13, 0.1, 0.13, 0, -0.62, 0, m.skin);
+      limb(arm, 0.075, 0.063, 0.3, m.top);
+      const band = new THREE.Mesh(cylGeo(0.08, 0.075, 0.06), m.team); band.position.y = -0.04; arm.add(band);
+      this.teamBand = band;
+      const elbow = new THREE.Group(); elbow.position.y = -0.29; arm.add(elbow);
+      limb(elbow, 0.062, 0.052, 0.27, m.top);
+      RB(elbow, 0.1, 0.11, 0.11, 0, -0.31, 0, m.skin, 0.5);
+      this.elbows.push(elbow);
     }
-    this.handR = new THREE.Group(); this.handR.position.set(0, -0.62, -0.02); this.armR.add(this.handR);
-    this.handL = new THREE.Group(); this.handL.position.set(0, -0.62, -0.02); this.armL.add(this.handL);
+    this.handR = new THREE.Group(); this.handR.position.set(0, -0.32, -0.02); this.elbows[1].add(this.handR);
+    this.handL = new THREE.Group(); this.handL.position.set(0, -0.32, -0.02); this.elbows[0].add(this.handL);
     // Head
     this.head = new THREE.Group(); this.head.position.y = 0.62; this.torso.add(this.head);
     this._buildHead(look);
@@ -157,15 +223,21 @@ export class CharacterModel {
         eyes(0.18, m.glow, 0.075, 0.06);
         break;
       default: {
-        // Human head: skin box + hair cap + eyes + nose
-        const zombie = look.head === 'zombie';
-        B(h, 0.28, 0.3, 0.28, 0, 0.15, 0, m.skin);
-        eyes(0.17, zombie ? M('#fe0', true) : m.dark, 0.065, 0.04);
-        B(h, 0.05, 0.06, 0.04, 0, 0.11, -0.155, m.skin);
-        if (look.hair && look.hat !== 'bob') B(h, 0.3, 0.07, 0.3, 0, 0.3, 0.01, m.hair);
-        if (look.hair && look.hat !== 'bob') B(h, 0.3, 0.2, 0.06, 0, 0.2, 0.13, m.hair);
-        if (look.hair2 === 'ponytail') B(h, 0.08, 0.25, 0.08, 0, 0.12, 0.2, m.hair);
-        if (look.hair2 === 'pigtails') { B(h, 0.08, 0.2, 0.08, -0.18, 0.12, 0.08, m.hair); B(h, 0.08, 0.2, 0.08, 0.18, 0.12, 0.08, m.hair); }
+        // Human head: rounded skull with a painted face, ears, nose and a hair cap
+        const head = new THREE.Mesh(roundedBoxGeo(0.28, 0.32, 0.29, 0.5), [m.skin, m.skin, m.skin, m.skin, m.skin, m.face]);
+        head.position.set(0, 0.155, 0);
+        h.add(head);
+        this.faceMesh = head;
+        RB(h, 0.05, 0.08, 0.05, -0.145, 0.15, 0.01, m.skin, 0.6); // ears
+        RB(h, 0.05, 0.08, 0.05, 0.145, 0.15, 0.01, m.skin, 0.6);
+        RB(h, 0.05, 0.07, 0.05, 0, 0.12, -0.152, m.skin, 0.6); // nose
+        const hairCover = !['knight', 'hood', 'plague', 'spacehelm', 'hotdog', 'bob'].includes(look.hat);
+        if (look.hair && hairCover) {
+          RB(h, 0.305, 0.12, 0.31, 0, 0.29, 0.012, m.hair, 0.6);
+          RB(h, 0.3, 0.24, 0.08, 0, 0.2, 0.125, m.hair, 0.5);
+        }
+        if (look.hair2 === 'ponytail') RB(h, 0.09, 0.26, 0.09, 0, 0.12, 0.2, m.hair, 0.7);
+        if (look.hair2 === 'pigtails') { RB(h, 0.09, 0.22, 0.09, -0.18, 0.12, 0.08, m.hair, 0.7); RB(h, 0.09, 0.22, 0.09, 0.18, 0.12, 0.08, m.hair, 0.7); }
       }
     }
   }
@@ -238,12 +310,12 @@ export class CharacterModel {
     const t = this.torso, m = this.mats, h = this.head;
     for (const e of look.extras || []) {
       switch (e) {
-        case 'vest': B(t, 0.48, 0.4, 0.28, 0, 0.3, 0, M('#3a3a2a')); break;
+        case 'vest': RB(t, 0.49, 0.42, 0.29, 0, 0.34, 0, M('#3a3a2a', false, fabricTexture()), 0.35); break;
         case 'tie': B(t, 0.06, 0.34, 0.02, 0, 0.33, -0.14, M('#a22')); break;
-        case 'labcoat': B(t, 0.5, 0.75, 0.29, 0, 0.2, 0, M('#f4f4f4')); break;
-        case 'tabard': B(t, 0.3, 0.7, 0.28, 0, 0.2, 0, M(look.tabard || '#b22')); break;
+        case 'labcoat': RB(t, 0.5, 0.78, 0.3, 0, 0.24, 0.005, M('#f4f4f4', false, fabricTexture()), 0.3); break;
+        case 'tabard': RB(t, 0.32, 0.72, 0.29, 0, 0.24, 0, M(look.tabard || '#b22', false, fabricTexture()), 0.3); break;
         case 'cape': B(t, 0.5, 0.95, 0.04, 0, 0.06, 0.16, M(look.cape || '#a22')); break;
-        case 'backpack': B(t, 0.34, 0.4, 0.16, 0, 0.32, 0.2, M('#445')); break;
+        case 'backpack': RB(t, 0.34, 0.42, 0.18, 0, 0.32, 0.21, M('#445', false, fabricTexture()), 0.5); break;
         case 'quiver': { const q = B(t, 0.1, 0.5, 0.1, 0.1, 0.35, 0.18, M('#6b4a2a')); q.rotation.z = 0.4; break; }
         case 'badge': B(t, 0.06, 0.06, 0.02, -0.12, 0.44, -0.14, M('#fc3')); break;
         case 'pearls': B(t, 0.3, 0.04, 0.03, 0, 0.52, -0.13, M('#fff')); break;
@@ -272,9 +344,11 @@ export class CharacterModel {
       if (!this._origSkin) this._origSkin = this.mats.skin.color.clone();
       this.mats.skin.color.set('#6f9a4a');
       this.mats.skin.emissive = new THREE.Color('#1a3310');
+      this.mats.face.color.set('#9fd070');
     } else if (this._origSkin) {
       this.mats.skin.color.copy(this._origSkin);
       this.mats.skin.emissive = new THREE.Color('#000');
+      this.mats.face.color.set('#ffffff');
     }
   }
 
@@ -313,6 +387,7 @@ export class CharacterModel {
       this.body.rotation.x = -k * Math.PI / 2 * (this.deathDir || 1);
       this.body.position.y = k * 0.15 - Math.max(0, this.deadT - 2.5) * 0.4;
       this.armL.rotation.x = k * 2.5; this.armR.rotation.x = k * 2.8;
+      this.knees[0].rotation.x = this.knees[1].rotation.x = -k * 0.3;
       return;
     }
     this.deadT = 0;
@@ -320,21 +395,30 @@ export class CharacterModel {
     this.body.position.y = 0;
     const moving = s.speed > 0.5;
     this.phase += dt * (moving ? s.speed * 1.6 : 0);
-    const swing = moving && !s.airborne ? Math.sin(this.phase) * Math.min(0.8, s.speed * 0.1) : 0;
-    this.legL.rotation.x = s.airborne ? -0.5 : swing;
-    this.legR.rotation.x = s.airborne ? 0.3 : -swing;
+    const amp = Math.min(0.85, s.speed * 0.11);
+    const swing = moving && !s.airborne ? Math.sin(this.phase) * amp : 0;
+    // knees bend while the leg swings back through the stride
+    const kneeL = moving && !s.airborne ? Math.max(0, Math.sin(this.phase - 1.4)) * amp * 1.6 : 0;
+    const kneeR = moving && !s.airborne ? Math.max(0, Math.sin(this.phase - 1.4 + Math.PI)) * amp * 1.6 : 0;
     const crouchK = s.crouch ? 1 : 0;
-    this.hips.position.y = 0.92 - crouchK * 0.38;
+    this.legL.rotation.x = s.airborne ? 0.7 : swing + crouchK * 1.15;
+    this.legR.rotation.x = s.airborne ? 0.2 : -swing + crouchK * 1.15;
+    this.knees[0].rotation.x = -(s.airborne ? 1.1 : kneeL) - crouchK * 1.7;
+    this.knees[1].rotation.x = -(s.airborne ? 0.4 : kneeR) - crouchK * 1.7;
+    this.hips.position.y = 0.92 - crouchK * 0.4;
     this.torso.position.y = 0.92 - crouchK * 0.42;
-    this.legL.scale.y = this.legR.scale.y = 1 - crouchK * 0.42;
-    this.body.position.y = moving && !s.airborne ? Math.abs(Math.sin(this.phase)) * 0.04 : 0;
+    this.torso.rotation.x = moving ? -0.05 * Math.min(1, s.speed / 7) : 0; // lean into the run
+    this.torso.rotation.y = swing * 0.12;
+    this.body.position.y = moving && !s.airborne ? Math.abs(Math.cos(this.phase)) * 0.045 : 0;
     // Arms aim along pitch, holding weapon forward.
     const aim = Math.PI / 2 + s.pitch;
     const recoil = this.flash > 0 ? 0.15 : 0;
     this.armR.rotation.x = aim + recoil;
-    this.armR.rotation.z = this.dual ? 0 : 0.12;
+    this.armR.rotation.z = this.dual ? 0 : -0.12;
     this.armL.rotation.x = this.dual ? aim + recoil : aim - 0.25;
-    this.armL.rotation.z = this.dual ? 0 : -0.55;
+    this.armL.rotation.z = this.dual ? 0 : 0.62;
+    this.elbows[1].rotation.x = 0.12;
+    this.elbows[0].rotation.x = this.dual ? 0.12 : 0.55;
     this.head.rotation.x = s.pitch * 0.6;
     this.flash = Math.max(0, this.flash - dt);
   }

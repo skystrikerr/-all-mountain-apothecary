@@ -34,6 +34,7 @@ Screenshots land in `scripts/shots/` (git-ignored).
 
 ### Other dev scripts
 * `node scripts/views.mjs [filter]` — framed screenshots of each room/arena for visual review.
+* `node scripts/lineup.mjs [startIndex]` — renders 7 characters side by side (idle, running, crouching) for model review.
 * `node scripts/balance.mjs` — measures damage-per-second a single enemy deals per weapon and difficulty
   (current targets: Easy ≈ 4–7, Normal ≈ 11–12, Hard ≈ 14–27).
 * `node scripts/botdebug.mjs <level> <mode>` — prints every bot's position, goal, path and target every 10 s.
@@ -68,4 +69,4 @@ Screenshots land in `scripts/shots/` (git-ignored).
 - [ ] Save, reload the page, load the saved map; it appears in Arcade's arena list; Export/Import JSON round-trips.
 
 **Performance**
-- [ ] Options → Show FPS. Target 60 fps at 1080p on a mid-range GPU with 8 bots; PS2 pixel mode halves the render resolution if needed.
+- [ ] Options → Show FPS. Target 60 fps at 1080p on a mid-range GPU with 8 bots; the default PS2 (480p) resolution keeps GPU cost low; Options → Render resolution trades sharpness for speed.

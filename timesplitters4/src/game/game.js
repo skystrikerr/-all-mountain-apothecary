@@ -51,7 +51,7 @@ export class Game {
     this.levelDef = levelDef;
     const L = new LevelBuilder({ id: levelDef.id });
     levelDef.build(L, { story: config.type === 'story', map: config.customMap, mode: config.mode });
-    L.finish();
+    L.finish({ env: levelDef.env || {} });
     this.level = L;
     this.world = L.world;
     this.scene.add(L.group);
@@ -152,7 +152,7 @@ export class Game {
     if (env.sun) {
       const sun = new THREE.DirectionalLight(env.sun.color || '#fff', env.sun.intensity ?? 1.5);
       sun.position.set(...(env.sun.dir || [30, 50, 20]));
-      if (env.sun.shadows !== false) {
+      if (false) { // shadow maps disabled: static shadows are baked, actors use blob shadows
         sun.castShadow = true;
         sun.shadow.mapSize.set(2048, 2048);
         const r = env.sun.shadowRange ?? 50;
@@ -433,7 +433,12 @@ export class Game {
     this.effects.update(dt);
     for (const a of this.actors) a.updateModel(dt);
     for (const o of this.level.animated) o.update(dt, this.time, this);
-    for (const l of this.level.lights) if (l.userData.flicker) l.intensity = l.userData.baseIntensity * (1 - l.userData.flicker * Math.random());
+    for (const l of this.level.lights) {
+      if (!l.userData.flicker) continue;
+      const k = 1 - l.userData.flicker * Math.random();
+      l.intensity = l.userData.baseIntensity * k;
+      if (l.userData.glow) l.userData.glow.material.opacity = 0.55 * k;
+    }
     for (let i = this.pendingRemovals.length - 1; i >= 0; i--) {
       const r = this.pendingRemovals[i];
       r.t -= dt;
@@ -500,25 +505,16 @@ export class Game {
   }
 
   render() {
-    const r = this.renderer;
-    const W = r.domElement.clientWidth, H = r.domElement.clientHeight;
-    r.setScissorTest(true);
+    const c = this.renderer.domElement;
+    const W = c.clientWidth || 1, H = c.clientHeight || 1;
     for (const v of this.views) {
       const vp = v.viewportPx(W, H);
-      r.setViewport(vp.x, vp.y, vp.w, vp.h);
-      r.setScissor(vp.x, vp.y, vp.w, vp.h);
       v.camera.aspect = vp.w / vp.h;
       v.camera.updateProjectionMatrix();
-      r.clear();
-      r.render(this.scene, v.camera);
-      if (v.actor.alive && !v.actor.weapons.zoomed) {
-        r.clearDepth();
-        v.vmCamera.aspect = vp.w / vp.h;
-        v.vmCamera.updateProjectionMatrix();
-        r.render(v.vmScene, v.vmCamera);
-      }
+      v.vmCamera.aspect = vp.w / vp.h;
+      v.vmCamera.updateProjectionMatrix();
     }
-    r.setScissorTest(false);
+    this.app.post.render(this.scene, this.views);
   }
 
   results() {
