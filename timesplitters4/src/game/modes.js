@@ -54,7 +54,7 @@ class Mode {
     const w = this.winner;
     if (w == null) return 'DRAW';
     if (typeof w === 'number') return `${TEAM_NAMES[w].toUpperCase()} TEAM WINS`;
-    return `${w.name.toUpperCase()} WINS`;
+    return w.isPlayer && w.name === 'You' ? 'YOU WIN!' : `${w.name.toUpperCase()} WINS`;
   }
   hudLine(player) { return `${player.stats.score} pts`; }
   botGoal() { return null; }

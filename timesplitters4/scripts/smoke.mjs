@@ -133,6 +133,25 @@ await page.waitForTimeout(4500);
 await page.screenshot({ path: path.join(shots, '31-story-complete.png') });
 check('story mission flow');
 
+// 4b. Pause menu, mission failure and checkpoint retry
+await page.evaluate(() => window.__ts4.startGame({ type: 'story', level: 'chicago', difficulty: 'normal', players: [{ character: 'ada', name: 'Ada', source: { kbm: true, pad: 0 } }], bots: [] }));
+await simulate(1);
+await page.evaluate(() => window.__ts4.pause());
+await page.waitForSelector('.menu-title');
+await page.screenshot({ path: path.join(shots, '33-pause.png') });
+await page.evaluate(() => document.querySelector('[data-a=resume]').click());
+const resumed = await page.evaluate(() => !window.__game.paused && !document.querySelector('.menu-title'));
+if (!resumed) { console.error('✗ resume failed'); process.exitCode = 1; }
+await page.evaluate(() => { const g = window.__game; g.localActors[0].takeDamage(9999, null, { fall: true }); });
+await simulate(3.5);
+await page.waitForTimeout(200);
+const failedShown = await page.evaluate(() => document.querySelector('.menu-title')?.textContent);
+await page.screenshot({ path: path.join(shots, '34-failed.png') });
+await page.evaluate(() => document.querySelector('[data-a=checkpoint]').click());
+const retried = await page.evaluate(() => ({ alive: window.__game.localActors[0].alive, paused: window.__game.paused }));
+if (failedShown !== 'MISSION FAILED' || !retried.alive || retried.paused) { console.error('✗ failure/retry flow', failedShown, retried); process.exitCode = 1; }
+check('pause / mission failed / checkpoint retry');
+
 // 5. Story with AI fighting the (god-mode) player for a while
 await page.evaluate(() => window.__ts4.startGame({ type: 'story', level: 'chicago', difficulty: 'hard', players: [{ character: 'ada', name: 'Ada', source: { kbm: true, pad: 0 } }], bots: [] }));
 await page.evaluate(() => { const p = window.__game.localActors[0]; p.maxHealth = 1e9; p.health = 1e9; p.pos.set(0, 0.05, 14); p.body.x = 0; p.body.y = 0.05; p.body.z = 14; });

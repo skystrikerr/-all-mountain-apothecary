@@ -8,7 +8,7 @@ const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--ena
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', (e) => console.log('ERR', e.message));
 await page.goto(server.resolvedUrls.local[0]);
-const level = process.argv[2] || 'chicago', mode = process.argv[3] || 'capturebag';
+const level = process.argv[2] || 'chicago', mode = process.argv[3] || 'capturebag'; // usage: node scripts/botdebug.mjs <level> <mode>
 await page.evaluate(({ level, mode }) => window.__ts4.startGame({ type: 'arcade', mode, level, weaponSet: 'classic', scoreLimit: 30, timeLimit: 5,
   players: [{ character: 'ada', source: { kbm: true, pad: 0 } }],
   bots: Array.from({ length: 7 }, (_, i) => ({ character: 'vinnie', skill: 0.5 })) }), { level, mode });

@@ -107,6 +107,8 @@ select, input[type=text] {
 select:focus, input:focus, .focus-ring { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255,210,60,0.6); }
 input[type=range] { accent-color: var(--orange); }
 .value-tag { display: inline-block; min-width: 44px; text-align: right; color: var(--cyan); }
+.form > div:has(> input[type=range]) { display: flex; align-items: center; gap: 10px; }
+.form > div > input[type=range] { flex: 1; }
 
 .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 52vh; overflow-y: auto; padding: 4px; }
 .char {

@@ -114,6 +114,7 @@ export class MissionMode {
     this.failed = false;
     this.over = false;
     for (const p of g.localActors) {
+      g.views[p.localIndex]?.respawned();
       p.spawn({ x: c.pos.x, y: c.pos.y, z: c.pos.z, yaw: c.yaw }, { weapons: c.weapons, armor: Math.max(c.armor, this.diff.playerArmor), invuln: 2 });
     }
     // Enemies calm down a little so the player isn't instantly swarmed.

@@ -24,6 +24,8 @@ class App {
     this.progress.takeNewUnlocks();
     try { Object.assign(audio.volume, JSON.parse(localStorage.getItem('ts4.volume') || '{}')); } catch { /* ignore */ }
     input.attach(this.canvas);
+    // Browsers only start audio after a user gesture; resume on the first one (covers ?quick= URLs too).
+    for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => audio.init(), { passive: true });
     input.onPauseRequest = () => { if (this.game && !this.game.paused && this.game.endT === null) this.pause(); };
     this.menu = new Menu(this);
     this.menuScene = new MenuScene();
@@ -138,6 +140,7 @@ class App {
 
   gameOver(game, results) {
     game.paused = true;
+    game.hud.container.style.display = 'none';
     input.releaseLock();
     let challengeInfo = null;
     if (results.type === 'story') {
