@@ -28,6 +28,7 @@ const url = server.resolvedUrls.local[0];
 const exe = process.env.CHROMIUM_PATH || undefined;
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'], executablePath: exe });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+page.setDefaultTimeout(90000); // software WebGL can stall briefly
 const errors = [];
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}\n${e.stack}`));
 page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text())) errors.push(`console: ${m.text()}`); });

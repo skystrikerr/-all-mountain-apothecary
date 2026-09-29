@@ -196,7 +196,9 @@ themes, sizes 8×8–24×24. Validates spawns, saves to local storage, exports/i
 ## Art & audio direction
 * PS2-era rendering: 480p soft upscale, baked vertex lighting with ambient occlusion and soft shadows, bloom,
   light halos, blob shadows, ordered dither; 128×128 hand-painted-style procedural textures.
-* Low-poly characters with rounded limbs, knee/elbow joints, painted faces (varied eyes/brows/mouths) and clothes.
+* Detailed PS2-era characters (~9k tris): sculpted faces with 3D eyes, noses, lips and ears, real hairstyles
+  (short, long, bob, fringes, spikes, ponytails, pigtails), beards, muscle-shaped limbs, hands with fingers,
+  shoes with soles/laces (sneakers for the 1997+ cast), collars, buttons, cuffs, belts, suits, uniforms, hats.
 * Warm practical lights, coloured neon, painted skies (night skyline, dusk hills), rain, fog; ACES tone mapping.
 * Chunky bevelled buttons, italic heavy type, orange/blue/cyan palette, animated stripes and a time-vortex.
 * Synthesized SFX per weapon family, positional stereo; per-level chiptune loops.

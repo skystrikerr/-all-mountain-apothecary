@@ -27,8 +27,9 @@ src/
     modes.js              Arcade modes: Deathmatch, Team DM, Capture the Bag, Elimination, Infection, Survival
     mission.js            Story mode: objectives, scripts, checkpoints, difficulty, medals
     playerView.js         Per-local-player camera, first-person viewmodel, split-screen viewport, HUD state
-    characterModel.js     Procedural low-poly characters (rounded limbs, knees/elbows) + animation (walk, aim, crouch, death)
-    characterTextures.js  Painted faces (eyes, brows, nose, mouth variations) and clothing textures
+    characterModel.js     Procedural detailed characters (sculpted heads, hair shells, lathed muscle limbs, hands, shoes,
+                          clothing details, hats), merged per bone + cached per character; animation
+    characterTextures.js  Painted head wraps (brows, lids, lips, stubble, hairline), shirt/uniform/suit wraps, fabric wraps
     weaponModel.js        Procedural weapon meshes (viewmodel, third-person, pickups)
     progress.js           localStorage progression: medals, stats, unlocks
   content/                Pure data (easy to extend)
@@ -120,6 +121,12 @@ depth clear. HUD panels are positioned DOM overlays matching the viewport rectan
   adds the 3 dynamic flash lights (muzzle flashes, explosions) on top. Baking a whole level takes < 1 s at load.
 * *Glow*: light fixtures get additive halo sprites; emissive signage is over-bright and picked up by bloom.
 * *Shadows*: no shadow maps — static shadows are baked, actors get blob shadows.
+* *Characters* (~9k triangles, ~25 draw calls each): the head is a sphere deformed by a sculpt function (jaw, chin,
+  cheekbones, brow ridge, eye sockets) with 3D eyeballs/irises, a modelled nose, lips, eyelids and ears; hair and
+  beards are shells cut from the same surface by a per-style coverage function, which also paints the matching
+  hairline into a 512×256 head texture. Bodies are lathe profiles with muscle shape, hands have curled fingers,
+  clothing has modelled collars/buttons/cuffs/belts plus wrap textures. Parts are merged into one multi-material
+  mesh per bone and the result is cached per character, so spawning a repeat character is ~0.3 ms.
 * *Materials*: 128×128 painted textures (bevels, grime, grain) with mipmapped bilinear + anisotropic filtering;
   guns use Phong specular plus a painted reflection env-map; characters use rounded, smooth-shaded limbs with
   painted faces and clothing.

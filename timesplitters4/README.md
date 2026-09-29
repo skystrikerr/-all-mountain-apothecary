@@ -22,7 +22,7 @@ there are no external art or audio assets.
 | **Challenges** | 9 challenges with bronze/silver/gold targets |
 | **Map Maker** | TS2-style tile editor: 9 tile types, spawns, weapon slots, health, armour, bag bases, 6 themes; save/load/export/import JSON; test-play instantly |
 | **Menus & HUD** | Chunky early-2000s menus with animated time-vortex backdrop, health/armour bars, ammo (dual counters), dynamic crosshair, hit markers, damage direction, radar, objective marker, kill feed, scoreboard, sniper scope, results screen with awards |
-| **Graphics** | PS2-style pipeline: 480p soft upscale, baked vertex lighting (ambient occlusion + soft shadows), bloom, light halos, blob shadows, ordered dither, painted 128px textures, painted skies, rain; rounded low-poly characters with painted faces; shiny env-mapped guns |
+| **Graphics** | PS2-style pipeline: 480p soft upscale, baked vertex lighting (ambient occlusion + soft shadows), bloom, light halos, blob shadows, ordered dither, painted 128px textures, painted skies, rain; detailed sculpted characters (faces with 3D eyes/noses/lips/ears, hairstyles, beards, fingers, clothing details, hats); shiny env-mapped guns |
 | **Audio** | Fully synthesized WebAudio SFX with stereo positioning + chiptune music sequencer |
 
 The complete game plan (6 campaign eras, 10 arenas, all weapons and characters, roadmap) is in
